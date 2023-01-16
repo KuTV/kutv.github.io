@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KuTV</title>
+    <link rel="icon" href="logo.png" />
+    <style>
+    :root {
+      /* blue */
+      --bg: #ffda9c;
+      --accent1: #365878;
+      --accent2: #5b6a78;
+    }
+
+    body {
+      background: var(--bg);
+      text-align: center;
+      margin: auto;
+      padding-top: 0.5em;
+      padding-bottom: 0.5em;
+      max-width: 800px;
+    }
+    .card {
+      background: rgb(255,255,255);
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+      margin-left: 1em;
+      margin-right: 1em;
+      border-radius: 1em;
+      display: inline-block;
+      width: -webkit-fill-available;
+      box-sizing: border-box;
+    }
+    .cardPadding {
+      padding: 1em;
+    }
+    label {
+      display: block;
+      text-align: left;
+      padding-left: 0.5em;
+      margin-top: 0.5em;
+    }
+    h1, h2, h3 {
+      color: var(--accent1);
+    }
+    input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 0.5em;
+      border: 0 solid;
+      border-bottom: 1px solid;
+      margin-bottom: 0.5em;
+    }
+    .button {
+      font-size: 1.4em;
+      box-sizing: border-box;
+      display: block;
+      width: 100%;
+      margin-top: 0.71em;
+      padding: 0.5em;
+      background-color: var(--accent1);
+      color: rgb(255,255,255);
+      border-radius: 0.71em;
+    }
+    p {
+      font-size: 1.4em;
+      margin-block-start: 0.5em;
+      margin-block-end: 0.5em;
+    }
+    hr {
+      border-width: 0px;
+      margin-block-start: 1em;
+      margin-block-end: 1em;
+    }
+    select {
+      font-size: 1;
+      padding: 0.25em;
+      color: rgb(0,0,0);
+      border-radius: 0.5em;
+      width: 12em;
+      text-align: center;
+    }
+    </style>
+  </head>
+  <body>
+    <header></header>
+    <main>
+      <div class="card cardPadding">
+        <h1>Kunstrad</h1>
+        <h2>Trainingsverwaltung</h2>
+        <label>Datum</label>
+        <input id="date" type="date" />
+        <label>Beginn</label>
+        <input id="start-time" type="time" value="18:00" />
+        <label>Ende</label>
+        <input id="end-time" type="time" value="20:00" />
+        <label>als</label>
+        <select id="role">
+          <option value="Trainer">Trainer</option>
+          <option value="Sportler">Sportler</option>
+        </select>
+        <label>Trainingsart</label>
+        <select id="training-type">
+          <option value="Normal">Normal</option>
+          <option value="Kader">Kader</option>
+          <option value="Online-Training">Online-Training</option>
+          <option value="Ferien">Ferien</option>
+          <option value="Showtraining">Showtraining</option>
+          <option value="Showauftritt">Showauftritt</option>
+          <option value="Wettkampf">Wettkampf</option>
+          <option value="Jugendausflug">Jugendausflug</option>
+        </select>
+        <a id="save" class="button" onclick="save()">Speichern</a>
+        <a id="export" class="button" onclick="exportData()">Exportieren</a>
+      </div>
+    </main>
+    <footer></footer>
+    <script type="text/javascript">
+      document.getElementById('date').valueAsDate = new Date()
+      var dateInput = document.getElementById("date")
+      var startTimeInput = document.getElementById("start-time")
+      var endTimeInput = document.getElementById("end-time")
+      var roleInput = document.getElementById("role")
+      var trainingTypeInput = document.getElementById("training-type")
+      var saveButton = document.getElementById("save")
+      var exportButton = document.getElementById("export")
+      var header = "date;startTime;endTime;role;trainingType\n"
+
+      function save() {
+        if (saveButton.text == "Saving...") {
+          alert("Wird bereits gespeichert, bitte gedulde dich.")
+          return
+        }
+        saveButton.text = "Saving..."
+        saveButton.style.background = "var(--accent2)"
+        dateInput.disabled = true
+        startTimeInput.disabled = true
+        endTimeInput.disabled = true
+        roleInput.disabled = true
+        trainingTypeInput.disabled = true
+
+        var date = dateInput.value
+        var startTime = startTimeInput.value
+        var endTime = endTimeInput.value
+        var role = roleInput.value
+        var trainingType = trainingTypeInput.value
+
+        if (!date) {
+          alert("Datum ungültig!")
+          errorResetButton()
+          return
+        }
+
+        if (!startTime) {
+          alert("Beginn ungültig!")
+          errorResetButton()
+          return
+        }
+
+        if (!endTime) {
+          alert("Ende ungültig!")
+          errorResetButton()
+          return
+        }
+
+        var csv = date + ";" + startTime + ";"  + endTime + ";" + role + ";" + trainingType
+
+        saveEntry(csv)
+        
+      }
+
+      function saveEntry(csv) {
+        var kutv_entry = ""
+        try {
+          kutv_entry = JSON.parse(localStorage.kutv)
+        } catch(error) {
+          if (localStorage.getItem("kutv") == null) {
+            localStorage.setItem("kutv", "")
+          } else {
+            console.error(error)
+          }
+        }
+        kutv_entry = kutv_entry + csv + "\n"
+        localStorage.kutv = JSON.stringify(kutv_entry)
+        resetSaveButton()
+      }
+
+      function errorResetButton() {
+        dateInput.disabled = false
+        startTimeInput.disabled = false
+        endTimeInput.disabled = false
+        roleInput.disabled = false
+        trainingTypeInput.disabled = false
+        saveButton.text = "Speichern"
+        saveButton.style.background = "var(--accent1)"
+      }
+
+      function resetSaveButton() {
+        dateInput.disabled = false
+        startTimeInput.disabled = false
+        endTimeInput.disabled = false
+        roleInput.disabled = false
+        trainingTypeInput.disabled = false
+        saveButton.text = "Gespeichert, danke!"
+        saveButton.onclick = tryAgainInfoSave
+        saveButton.style.background = "var(--accent2)"
+      }
+
+      function resetExportButton() {
+        dateInput.disabled = false
+        startTimeInput.disabled = false
+        endTimeInput.disabled = false
+        roleInput.disabled = false
+        trainingTypeInput.disabled = false
+        exportButton.text = "Exportiert, danke!"
+        exportButton.onclick = tryAgainInfoExport
+        exportButton.style.background = "var(--accent2)"
+      }
+
+      function exportData() {
+        if (exportButton.text == "Exporting...") {
+          alert("Wird bereits exportiert, bitte gedulde dich.")
+          return
+        }
+        exportButton.text = "Exporting..."
+        exportButton.style.background = "var(--accent2)"
+        dateInput.disabled = true
+        startTimeInput.disabled = true
+        endTimeInput.disabled = true
+        roleInput.disabled = true
+        trainingTypeInput.disabled = true
+
+        var data = ""
+        try {
+          data = JSON.parse(localStorage.kutv)
+          data = header + data
+        } catch(error) {
+          console.error(error)
+        }
+
+        var timeStamp = new Date().toISOString().slice(0,10)
+        var fileName = timeStamp + "_kutv.csv"
+
+        saveToLocalTextFile(data, fileName)
+        resetExportButton()
+      }
+
+      function saveToLocalTextFile(fileContent, fileName) {
+        let blob = new Blob([fileContent], {type:'text/plain'})
+        let a = document.createElement('a')
+        a.href = window.URL.createObjectURL(blob)
+        a.download = typeof(fileName) === 'string' ? fileName : 'download'
+        a.target = '_blank'
+        a.click()
+        a.remove()
+      }
+
+      function tryAgainInfoSave() {
+        alert('Deine Daten sind gespeichert. Wenn du neue Einträge machen möchtest, lade die Seite erneut.')
+      }
+
+      function tryAgainInfoExport() {
+        alert('Deine Daten wurden exportiert. Wenn du neue Einträge machen möchtest, lade die Seite erneut.')
+      }
+    </script>
+  </body>
+</html>
